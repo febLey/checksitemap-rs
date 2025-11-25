@@ -8,9 +8,7 @@ use xml::reader::{EventReader, XmlEvent};
 
 const HEADER: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36";
 
-fn fetch_sitemap(url: &String) -> String {
-    let client = reqwest::blocking::Client::new();
-
+fn fetch_sitemap(client: &reqwest::blocking::Client, url: &String) -> String {
     let mut body = String::new();
     let _res = client
         .get(url)
@@ -57,9 +55,7 @@ fn parse_xml(content: String) -> Vec<String> {
     return vec;
 }
 
-fn check_url(url: &String) {
-    let client = reqwest::blocking::Client::new();
-
+fn check_url(client: &reqwest::blocking::Client, url: &String) {
     let res = client
         .get(url)
         .header(USER_AGENT, HEADER)
@@ -76,8 +72,9 @@ fn main() {
     let now = std::time::Instant::now();
 
     let args: Vec<String> = env::args().collect();
+    let client = reqwest::blocking::Client::new();
     let url = &args[1];
-    let body = fetch_sitemap(&url);
+    let body = fetch_sitemap(&client, &url);
 
     if body.len() == 0 {
         return;
@@ -89,7 +86,7 @@ fn main() {
     let urls = parse_xml(body);
 
     for url in urls {
-        check_url(&url);
+        check_url(&client, &url);
     }
 
     println!("> Check complete!");
