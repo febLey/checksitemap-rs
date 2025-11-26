@@ -1,10 +1,9 @@
-use std::{
-    env,
-    io::{BufReader, Read},
-};
+use std::{env, io::Read};
 
 use reqwest::header::USER_AGENT;
-use xml::reader::{EventReader, XmlEvent};
+
+use quick_xml::events::Event;
+use quick_xml::Reader;
 
 const HEADER: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36";
 
@@ -20,39 +19,32 @@ fn fetch_sitemap(client: &reqwest::blocking::Client, url: &String) -> String {
     return body;
 }
 
-fn parse_xml(content: String) -> Vec<String> {
-    let file = BufReader::new(content.as_bytes());
-    let parser = EventReader::new(file);
+fn parse_xml(content: &str) -> Vec<String> {
+    // let mut inside_loc_element = false;
 
-    let mut inside_loc_element = false;
-    let mut vec = Vec::new();
+    let mut reader = Reader::from_str(content);
+    // reader.trim_text(true);
+    let mut buf = Vec::new();
 
-    for e in parser {
-        match e {
-            Ok(XmlEvent::StartElement { name, .. }) => {
-                if name.local_name == "loc" {
-                    inside_loc_element = true;
+    let mut urls = Vec::new();
+
+    loop {
+        match reader.read_event_into(&mut buf) {
+            // error
+            Err(e) => panic!("XML error at position {}: {:?}", reader.error_position(), e),
+            // end of file
+            Ok(Event::Eof) => break,
+
+            Ok(Event::Start(e)) if e.name().as_ref() == b"loc" => {
+                if let Ok(Event::Text(t)) = reader.read_event_into(&mut buf) {
+                    urls.push(t.decode().unwrap().to_string());
                 }
-            }
-            Ok(XmlEvent::EndElement { name, .. }) => {
-                if name.local_name == "loc" {
-                    inside_loc_element = false;
-                }
-            }
-            Ok(XmlEvent::Characters(text)) => {
-                if inside_loc_element {
-                    vec.push(text);
-                }
-            }
-            Err(e) => {
-                eprintln!("Error: {e}");
-                break;
             }
             _ => {}
         }
     }
 
-    return vec;
+    return urls;
 }
 
 fn check_url(client: &reqwest::blocking::Client, url: &String) {
@@ -86,7 +78,7 @@ fn main() {
     println!("> Sitemap seems to be present");
     println!("> Checking links...");
 
-    let urls = parse_xml(body);
+    let urls = parse_xml(&body);
 
     for url in urls {
         check_url(&client, &url);
