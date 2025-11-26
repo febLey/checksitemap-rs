@@ -70,7 +70,7 @@ fn main() {
     let url = &args[1];
     let body = fetch_sitemap(&client, &url);
 
-    if body.len() == 0 {
+    if body.is_empty() {
         return;
     }
 
