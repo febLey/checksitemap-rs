@@ -1,9 +1,8 @@
-use std::{env, io::Read};
-
-use reqwest::header::USER_AGENT;
-
 use quick_xml::events::Event;
 use quick_xml::Reader;
+use rayon::prelude::*;
+use reqwest::header::USER_AGENT;
+use std::{env, io::Read};
 
 const HEADER: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36";
 
@@ -80,9 +79,9 @@ fn main() {
 
     let urls = parse_xml(&body);
 
-    for url in urls {
-        check_url(&client, &url);
-    }
+    urls.par_iter().for_each(|url| {
+        check_url(&client, url);
+    });
 
     println!("> Check complete!");
     println!("Elapsed: {:.2?}", now.elapsed());
