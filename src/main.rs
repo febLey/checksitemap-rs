@@ -1,3 +1,4 @@
+use indicatif::{ProgressBar, ProgressStyle};
 use quick_xml::events::Event;
 use quick_xml::Reader;
 use rayon::prelude::*;
@@ -76,8 +77,17 @@ fn main() {
 
     println!("> Checking {} links...", urls.len());
 
+    let pb = ProgressBar::new(urls.len() as u64);
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template("[{bar:40}] {pos}/{len} {msg}")
+            .unwrap(),
+    );
+
     urls.par_iter().for_each(|url| {
         check_url(&client, url);
+
+        pb.inc(1);
     });
 
     println!("> Check complete!");
