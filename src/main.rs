@@ -19,12 +19,8 @@ fn fetch_sitemap(client: &reqwest::blocking::Client, url: &String) -> String {
 }
 
 fn parse_xml(content: &str) -> Vec<String> {
-    // let mut inside_loc_element = false;
-
-    let mut reader = Reader::from_str(content);
-    // reader.trim_text(true);
     let mut buf = Vec::new();
-
+    let mut reader = Reader::from_str(content);
     let mut urls = Vec::new();
 
     loop {
