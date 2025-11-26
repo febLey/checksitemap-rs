@@ -62,9 +62,12 @@ fn check_url(client: &reqwest::blocking::Client, url: &String) {
         .send()
         .expect("HTTP response");
 
-    if !res.status().is_success() {
+    let status = res.status();
+    let _ = res.bytes();
+
+    if !status.is_success() {
         println!(":: Error loading: {}", url);
-        println!("   -> Status code: {}", res.status());
+        println!("   -> Status code: {}", status);
     }
 }
 
