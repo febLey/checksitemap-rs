@@ -68,7 +68,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let client = reqwest::blocking::Client::new();
     let url = &args[1];
-    let body = fetch_sitemap(&client, &url);
+    let body = fetch_sitemap(&client, url);
 
     if body.is_empty() {
         return;
