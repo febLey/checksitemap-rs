@@ -71,9 +71,10 @@ fn main() {
     }
 
     println!("> Sitemap seems to be present");
-    println!("> Checking links...");
 
     let urls = parse_xml(&body);
+
+    println!("> Checking {} links...", urls.len());
 
     urls.par_iter().for_each(|url| {
         check_url(&client, url);
